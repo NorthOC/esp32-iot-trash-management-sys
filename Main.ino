@@ -6,17 +6,18 @@
 #include <MFRC522.h>
 #include "WiFi.h"
 
-#define RST_PIN         2          // Configurable, see typical pin layout above
-#define SS_PIN          21         // Configurable, see typical pin layout above
+//Pins for ESP32 RFID, look up pinouts to find out what your pinout is
+#define RST_PIN         2
+#define SS_PIN          21
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 
-//70 F5 F5 32 -card
-//39 EF E6 B8 -chip
- 
+
+// For AWS testing purposes
 #define AWS_IOT_PUBLISH_TOPIC   "esp32/pub"
 #define AWS_IOT_SUBSCRIBE_TOPIC "esp32/sub"
 
+// Vars for testing
 int current_queue = 0;
 int n = 2;
 int total[2] = {0, 0};
@@ -25,11 +26,12 @@ String id1 = "70 F5 F5 32";
 String name2 = "Rosita";
 String id2 = "39 EF E6 B8";
 String current_user = id1;
- 
+
+
+// Wifi client and MQTT for AWS
 WiFiClientSecure wifi_client = WiFiClientSecure();
 MQTTClient mqtt_client = MQTTClient(256);
-const char* ssid = "HH40V_466B";
-const char* password = "82860669";
+
 
 void connectAWS()
 {
@@ -63,7 +65,8 @@ void connectAWS()
 
   Serial.println("AWS IoT Connected!");
 }
- 
+
+//Info to send over to AWS
 void publishMessage(String nam, int current, int total)
 {
   StaticJsonDocument<200> doc;
@@ -78,7 +81,7 @@ void publishMessage(String nam, int current, int total)
   Serial.println(AWS_IOT_PUBLISH_TOPIC);
   Serial.println();
 }
- 
+// Receive data from AWS
 void incomingMessageHandler(String &topic, String &payload) {
   Serial.println("Message received!");
   Serial.println("Topic: " + topic);
@@ -89,7 +92,7 @@ void setup()
 {
   Serial.begin(115200);
   
-    //Begin WiFi in station mode
+  //Begin WiFi in station mode
   WiFi.mode(WIFI_STA); 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.println("Connecting to Wi-Fi");
@@ -102,8 +105,9 @@ void setup()
   Serial.println();
   SPI.begin();      // Initiate  SPI bus
   mfrc522.PCD_Init();   // Initiate MFRC522
+  // Initially it is Denis turn
   Serial.println();
-  Serial.println("Currently, it is Deni's turn to take out the trash");
+  Serial.println("Currently, it is Denis turn to take out the trash");
   Serial.println("Please, scan your card:");
   Serial.println();
 }
@@ -121,6 +125,7 @@ void loop()
     return;
   }
  
+  //Print RFID card id
   Serial.print("UID tag :");
   String content= "";
   byte letter;
@@ -135,6 +140,7 @@ void loop()
   Serial.print("Message : ");
   content.toUpperCase();
 
+  //Check if it is Denis turn to take out trash
   if (current_user ==  id1 && content.substring(1) == id1)
   {
     current_queue += 1;
@@ -151,7 +157,7 @@ void loop()
       Serial.println("Denis has taken out 3 trashbags. Now it is Rosita's turn");
     }
   }
-
+  //Check if is currently Rosita's turn
   else if (current_user == id2 && content.substring(1) == id2)
   {
     current_queue += 1;
@@ -169,6 +175,7 @@ void loop()
     }
   }
  
+  //In case the card is not recognized, or it is not that persons turn
   else   
   {
     Serial.println("Person not recognised");

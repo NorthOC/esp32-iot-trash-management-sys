@@ -2,3 +2,8 @@
 This is a project for my IoT class.
 
 `Main.ino` contains all of the code, while `secrets.h` contains all AWS keys (I posted the private key on purpose)
+
+
+Presentation:
+
+https://docs.google.com/presentation/d/1fm76JLI8Fyzv7xA_SkN7ptWmWQbgh1o8vt4uABd4NHg/edit?usp=sharing
